@@ -1,33 +1,53 @@
-// GENERAL
-const log = x => {
-    console.log(x);
-    return x;
-}
-const square = x => x * x;
+
+// Symbols
 const EQ = Symbol(`EQ`);
 const LT = Symbol(`LT`);
 const RT = Symbol(`RT`);
+const LIST_END = Symbol(`LIST_END`);
+const TREE_END = Symbol(`TREE_END`);
+// GENERAL
+const square = x => x * x;
 const compare = (x, y) => x === y 
     ? EQ
     : x < y ? LT : RT;
+// Boolean
+const T = a => b => a;
+const F = a => b => b;
+T.toString = () => `T`;
+F.toString = () => `F`;
 
+const not = a => a(F)(T);
+const and = a => b => a(b)(F);
+const or = a => b => a(T)(b);
+const xor = a => b => a(not(b))(b);
+
+console.log(`T and T = ${and(T)(T)}`);
+console.log(`T and F = ${and(T)(F)}`);
+console.log(`F and F = ${and(F)(F)}`);
+
+console.log(`T xor T = ${xor(T)(T)}`);
+console.log(`T xor F = ${xor(T)(F)}`);
+console.log(`F xor F = ${xor(F)(F)}`);
+
+console.log(`T or T = ${or(T)(F)}`);
+console.log(`T or F = ${or(T)(F)}`);
+console.log(`F or F = ${or(F)(F)}`);
 // CONS
-const cons = (a,b) => f => f(a,b);
+const cons = a => b => f => f(a)(b);
 
-const cdr = cons => cons((a,b) => b);
+const cdr = cons => cons(a => b => b);
 
-const cat = cons => cons((a,b) => a);
+const cat = cons => cons(a => b => a);
 
-console.log(`cdr(cons(1,2)) === 2 | ${cdr(cons(1,2)) === 2} | ${cdr(cons(1,2))}`);
-console.log(`cat(cons(1,2)) === 2 | ${cat(cons(1,2)) === 1} | ${cat(cons(1,2))}`);
+console.log(`cdr(cons(1,2)) === 2 | ${cdr(cons(1)(2)) === 2} | ${cdr(cons(1)(2))}`);
+console.log(`cat(cons(1,2)) === 2 | ${cat(cons(1)(2)) === 1} | ${cat(cons(1)(2))}`);
 
 // LIST
 
-const LIST_END = Symbol(`LIST_END`);
 
-const list = el => cons(el, LIST_END);
+const list = el => cons(el)(LIST_END);
 
-const list_push = (el, list) => cons(el, list);
+const list_push = (el, list) => cons(el)(list);
 
 const list_show = list => `[${fn_list_show(list)}]`;
 
@@ -37,8 +57,8 @@ const fn_list_show = list => cdr(list) === LIST_END
 
 const map = (fn, list) => {
     return cdr(list) === LIST_END 
-        ? cons(fn(cat(list)), LIST_END)
-        : cons(fn(cat(list)), map(fn, cdr(list)));
+        ? cons(fn(cat(list)))(LIST_END)
+        : cons(fn(cat(list)))(map(fn, cdr(list)));
 }
 
 const list_log = list => log(list_show(list));
@@ -53,7 +73,6 @@ const c = map(square, b);
 console.log(`mapped list by square | ${list_show(c)}`);
 
 // TREE
-const TREE_END = Symbol(`TREE_END`);
 const create_tree = (x, l = TREE_END, r = TREE_END) => f => f(x, l, r);
 
 const tree_value = tree => tree((x, l, r) => x);
